@@ -1,8 +1,9 @@
 # Vivado / simulator reports (kept for traceability)
 
 These come from the team's own Vivado 2024.2 run for part `xc7a35tcpg236-1` (Basys 3), at a 100 MHz clock constraint.
-They were produced **before** the behavioral layer refactor (see `../STATUS_AND_ISSUES.md`) and do not describe the current `rtl/cnn_top.v` plus layer modules.
-The current behavioral RTL has not been through Vivado yet.
+They were produced **before** the current one-MAC RTL was restored (see
+`../STATUS_AND_ISSUES.md`) and do not describe the current `rtl/cnn_top.v`.
+The current one-MAC RTL has not been through Vivado yet.
 The timing report is trimmed to its summary and the worst setup path; the rest of the Vivado project (checkpoints, logs, waveform DB, bitstream) is intentionally not in the repo.
 
 | File | What it shows | Key numbers |

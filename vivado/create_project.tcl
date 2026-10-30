@@ -10,10 +10,7 @@ create_project cnn_eye_drowsiness $root/vivado/build -part xc7a35tcpg236-1 -forc
 add_files [list \
   $root/rtl/basys3_wrapper.v \
   $root/rtl/cnn_top.v \
-  $root/rtl/cnn_image_loader.v \
-  $root/rtl/cnn_conv1_layer.v \
-  $root/rtl/cnn_conv2_layer.v \
-  $root/rtl/cnn_fc_layer.v \
+  $root/rtl/rom_weights.v \
   $root/rtl/seven_seg_drive.v ]
 # rom_weights.v loads these with $readmemh("<name>.mem"): they must be part of the project
 add_files [glob $root/ml/export/*.mem]

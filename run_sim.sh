@@ -10,10 +10,7 @@ echo "== [1/2] Top-level: tb_cnn vs ml/export/expected.txt (16 images, bit-exact
 # rom_weights.v loads its .mem files by relative name, so run inside ml/export
 iverilog -g2005 -o "$B/tb_cnn.vvp" \
   "$ROOT/rtl/cnn_top.v" \
-  "$ROOT/rtl/cnn_image_loader.v" \
-  "$ROOT/rtl/cnn_conv1_layer.v" \
-  "$ROOT/rtl/cnn_conv2_layer.v" \
-  "$ROOT/rtl/cnn_fc_layer.v" \
+  "$ROOT/rtl/rom_weights.v" \
   "$ROOT/sim/tb_cnn.v"
 ( cd "$ROOT/ml/export" && vvp "$B/tb_cnn.vvp" ) > "$B/tb_cnn.log"
 python3 - "$B/tb_cnn.log" "$ROOT/ml/export/expected.txt" <<'EOP' || fail=1

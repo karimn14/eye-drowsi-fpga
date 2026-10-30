@@ -38,45 +38,38 @@ The 16 demo images are chosen by `quantize_export.py`: the first two are the mod
 basys3_wrapper ── btnR → rising-edge → start
       │          btnC → async reset
       │          SW[3:0] → img_base_addr = SW × 1024
-      └── cnn_top ── layer scheduler
-            ├── cnn_image_loader  (576 px → image_flat)
-            ├── cnn_conv1_layer   (Conv1 + ReLU + pool → a1_flat)
-            ├── cnn_conv2_layer   (Conv2 + ReLU + pool → a2_flat)
-            └── cnn_fc_layer      (FC + argmax → logits/prediction)
+      └── cnn_top ── sequential FSM, one MAC
+            ├── LOAD  (576 px → img_mem)
+            ├── CONV1 (Conv1 + ReLU + pool → a1_mem)
+            ├── CONV2 (Conv2 + ReLU + pool → a2_mem)
+            └── FC    (FC + argmax → logits/prediction)
       └── seven_seg_drive ── "----" while busy, "OPN " / "CLSD" when done
 ```
 
-* The active RTL is behavioral: each layer module computes its complete output
-  when its `start` pulse is asserted and returns a one-cycle `done` pulse.
-  Intermediate maps use packed layer interfaces (`image_flat`, `a1_flat`,
-  `a2_flat`).
-* This organization is intended to keep the design readable and make each
-  layer independently replaceable. It is not a resource-efficient
-  implementation: synthesis, timing, and BRAM/DSP inference must be measured
-  again after this refactor.
+* The active RTL uses one multiply-accumulate datapath sequentially. A
+  convolution tap is processed over multiple clocks; the same MAC is reused
+  for every output position, filter, and layer.
+* `rom_weights.v` reads the exported `.mem` files through synchronous ROM
+  ports. The layer buffers are written one value at a time instead of being
+  transferred as large packed vectors.
+* This organization trades latency for lower parallel logic and is the
+  intended baseline for Basys 3 resource usage. Vivado synthesis is still
+  required to confirm BRAM/LUT/FF inference.
 * `cnn_top` ports: `clk, rst (async, active-high), start, img_base_addr[13:0] → done, prediction, logit0, logit1 (signed 32)`.
 * Weight ROMs are **synchronous-read**: data appears one clock after the address. This is exactly what the original design got wrong — see below.
 
-## 4. Behavioral layer implementation
+## 4. Sequential one-MAC implementation
 
-The numerical path is now split into
-[`cnn_image_loader.v`](../rtl/cnn_image_loader.v),
-[`cnn_conv1_layer.v`](../rtl/cnn_conv1_layer.v),
-[`cnn_conv2_layer.v`](../rtl/cnn_conv2_layer.v), and
-[`cnn_fc_layer.v`](../rtl/cnn_fc_layer.v). Each module loads only the ROM
-content it owns and exposes a simple `start`/`done` interface. This removes the
-layer-specific counters and synchronous-ROM timing from `cnn_top.v`.
-
-The previous synchronous-ROM implementation is retained in
-`rtl/legacy/cnn_top_original_buggy.v` for history. The current behavioral
-implementation should be compared against `ml/export/expected.txt` before
-hardware synthesis.
+`cnn_top.v` is intentionally a sequential engine rather than a fully
+unrolled behavioral network. It requests one ROM value, performs one MAC, and
+advances its counters. This prevents the nested convolution loops from
+becoming hundreds of parallel multipliers during synthesis. The old buggy
+implementation remains in `rtl/legacy/cnn_top_original_buggy.v` for history.
 
 ## 5. Stand-alone pipelined blocks
 
 `conv_pe.v` (parameter `NTAPS` 9 or 36, 2-clock latency, throughput 1 output per clock) and `relu_requant.v` (parameter `SHIFT`) were written as a faster, testable replacement for the sequential datapath. They pass their unit tests (`sim/unit/`) but `cnn_top.v` does not instantiate them. `conv_act.v` and `maxpool2x2.v` are older helper modules that nothing instantiates.
 
-The current top-level behavioral layer modules are separate from these
-pipelined building blocks. They prioritize readable layer boundaries and
-bit-exact simulation; the pipelined blocks remain available for a later
-resource- and timing-oriented implementation.
+These pipelined blocks remain available for a later resource- and
+timing-oriented implementation; they are not instantiated by the current
+one-MAC baseline.
