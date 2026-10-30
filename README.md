@@ -37,9 +37,9 @@ and hardware details.
 | int8 model accuracy | train 97.2% · valid 94.4% · **test 98.1%** (108 images) | Recomputed from `ml/export/*.mem` and `ml/*.npz` with the bit-exact NumPy model |
 | RTL vs. golden model | **16/16 logit pairs identical** (`rtl/cnn_top.v`) | Icarus Verilog via `./run_sim.sh` |
 | Unit tests | All pass with 0 errors | `./run_sim.sh` |
-| Latency | The previous sequential RTL was approximately 75.8k cycles/image | Historical measurement; the behavioral refactor must be measured again |
-| Resources | 5,063 LUT (24%), 9,858 FF (24%), 5 BRAM, 0 DSP | Historical Vivado 2024.2 reports in `docs/reports/` |
-| **Timing at 100 MHz** | **Not yet verified for the behavioral RTL** | The historical pre-refactor design had WNS −7.2 ns |
+| Latency | Approximately 75.8k cycles/image | Sequential one-MAC datapath; measured by simulation |
+| Resources | 5,063 LUT (24%), 9,858 FF (24%), 5 BRAM, 0 DSP | Historical Vivado 2024.2 reports; re-synthesis required |
+| **Timing at 100 MHz** | **Not yet verified after the one-MAC restoration** | Run synthesis and implementation again |
 
 > **Evaluation caveat:** The test set is small and all samples come from one
 > subject. Treat the 98.1% test accuracy as optimistic; see the issues document
@@ -52,12 +52,8 @@ and hardware details.
 ├── run_sim.sh                  # Runs all simulations and checks golden outputs
 ├── rtl/
 │   ├── basys3_wrapper.v        # FPGA top: buttons, switches, LEDs, 7-segment
-│   ├── cnn_top.v               # Layer scheduler
-│   ├── cnn_image_loader.v      # Image ROM and input loader
-│   ├── cnn_conv1_layer.v       # Conv1, ReLU, and max-pooling
-│   ├── cnn_conv2_layer.v       # Conv2, ReLU, and max-pooling
-│   ├── cnn_fc_layer.v          # Fully-connected layer and argmax
-│   ├── rom_weights.v           # Legacy synchronous ROM implementation
+│   ├── cnn_top.v               # Sequential FSM and one-MAC datapath
+│   ├── rom_weights.v           # Synchronous .mem ROMs
 │   ├── seven_seg_drive.v       # Displays OPN / CLSD / ----
 │   ├── conv_pe.v, relu_requant.v
 │   ├── conv_act.v, maxpool2x2.v # Helper modules
@@ -142,10 +138,7 @@ to:
 ```text
 tb_cnn.v
 cnn_top.v
-cnn_image_loader.v
-cnn_conv1_layer.v
-cnn_conv2_layer.v
-cnn_fc_layer.v
+rom_weights.v
 ```
 
 If the Vivado Sources panel shows `examples/digits-demo-basys3` or
