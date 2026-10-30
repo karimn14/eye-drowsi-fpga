@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`include "tb_paths.vh"
 `include "model_params.vh"
 // tb_top_real.v - drowsiness_top with the CNN team's cnn_top (eye-drowsi-fpga/rtl), board pins only.
 //  1. manual mode: every slot via btnC; eye_state / logits vs the Python golden, LEDs, 7-segment text
@@ -23,7 +24,7 @@ module tb_top_real;
                       T_TIRE = {7'h78, 7'h04, 7'h50, 7'h79}, T_SLEP = {7'h6D, 7'h38, 7'h79, 7'h73};
 
     drowsiness_top #(.CLK_MHZ(100), .DEB_CYCLES(4), .STEP_TICKS(STEP), .REFRESH_BITS(RB), .BLINK_BITS(8),
-        .SEQ_FILE("../mem/seq.mem"))
+        .SEQ_FILE(`MEM("seq.mem")))
     dut (.clk(clk), .sw(sw), .btnC(btnC), .btnU(btnU), .led(led), .seg(seg), .dp(dp), .an(an));
 
     always #5 clk = ~clk;
@@ -51,8 +52,8 @@ module tb_top_real;
     endtask
 
     initial begin
-        $readmemh("../mem/stub_logits.mem", gl);
-        $readmemh("vectors/seq_expected.mem", seq_exp);
+        $readmemh(`MEM("stub_logits.mem"), gl);
+        $readmemh(`VEC("seq_expected.mem"), seq_exp);
         btnU = 1; repeat (10) @(negedge clk); btnU = 0; repeat (30) @(negedge clk);
 
         // ---- 1. manual mode ----

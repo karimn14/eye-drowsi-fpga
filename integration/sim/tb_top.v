@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`include "tb_paths.vh"
 `include "model_params.vh"
 // tb_top.v - drowsiness_top built with USE_STUB (cnn_core_stub, golden logits), driven only through the board pins.
 // (tb_top_real.v runs the same top with the CNN team's cnn_top.)
@@ -26,8 +27,8 @@ module tb_top;
                       T_LAT  = {7'h3F, 7'h3F, 7'h4F, 7'h3F};   // 3000 cycles = 30 us -> "0030"
 
     drowsiness_top #(.CLK_MHZ(100), .DEB_CYCLES(4), .STEP_TICKS(STEP), .REFRESH_BITS(RB), .BLINK_BITS(8),
-        .STUB_LATENCY(LAT), .IMG_FILE("../mem/images.mem"), .W_FILE("../mem/weights.mem"),
-        .B_FILE("../mem/biases.mem"), .SEQ_FILE("../mem/seq.mem"), .LOGIT_FILE("../mem/stub_logits.mem"))
+        .STUB_LATENCY(LAT), .IMG_FILE(`MEM("images.mem")), .W_FILE(`MEM("weights.mem")),
+        .B_FILE(`MEM("biases.mem")), .SEQ_FILE(`MEM("seq.mem")), .LOGIT_FILE(`MEM("stub_logits.mem")))
     dut (.clk(clk), .sw(sw), .btnC(btnC), .btnU(btnU), .led(led), .seg(seg), .dp(dp), .an(an));
 
     always #5 clk = ~clk;
@@ -49,9 +50,9 @@ module tb_top;
     endtask
 
     initial begin
-        $readmemh("../mem/stub_logits.mem", gl);
-        $readmemh("vectors/slot_sum.mem", sums);
-        $readmemh("vectors/seq_expected.mem", seq_exp);
+        $readmemh(`MEM("stub_logits.mem"), gl);
+        $readmemh(`VEC("slot_sum.mem"), sums);
+        $readmemh(`VEC("seq_expected.mem"), seq_exp);
         btnU = 1; repeat (10) @(negedge clk); btnU = 0; repeat (30) @(negedge clk);
         grab; if (shown !== {4{7'h40}}) fail("---- after reset", 0);
 

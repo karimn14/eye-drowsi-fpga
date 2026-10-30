@@ -36,3 +36,6 @@ add_files -fileset constrs_1 -norecurse [list [file join $fpga constraints basys
 set_property top drowsiness_top [current_fileset]
 update_compile_order -fileset sources_1
 puts "INFO: drowsiness design added to [current_project] (USE_STUB = $USE_STUB): [llength $srcs] RTL files, [llength $mems] .mem files"
+
+# testbenches for the Vivado simulator (skipped in the stub build)
+if {!$USE_STUB} { source [file join $fpga scripts add_sim_sources.tcl] }

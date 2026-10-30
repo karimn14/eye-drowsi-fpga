@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`include "tb_paths.vh"
 // tb_drowsy_fsm.v
 //  part 1 (manual mode): mock CNN answers from vectors/drowsy_trace.mem (made by drowsy_ref.py via
 //          scripts/gen_sim_data.py); after every frame count / runs / perclos / state must match.
@@ -19,7 +20,7 @@ module tb_drowsy_fsm;
     reg [3:0]  seq   [0:SEQ_LEN-1];
     integer errors = 0, i, delay, starts = 0, last_start = 0, n0;
 
-    drowsy_fsm #(.STEP_TICKS(STEP), .SLOW_TICKS(SLOW), .SEQ_LEN(SEQ_LEN), .SEQ_FILE("../mem/seq.mem")) dut (
+    drowsy_fsm #(.STEP_TICKS(STEP), .SLOW_TICKS(SLOW), .SEQ_LEN(SEQ_LEN), .SEQ_FILE(`MEM("seq.mem"))) dut (
         .clk(clk), .rst(rst), .start_pulse(start_pulse), .slot_sw(slot_sw), .seq_mode(seq_mode), .seq_slow(seq_slow), .seq_step(seq_step), .seq_scan(seq_scan),
         .low_conf_en(low_conf_en), .cnn_start(cnn_start), .cnn_done(cnn_done), .cnn_eye(cnn_eye),
         .cnn_logit0(logit0), .cnn_logit1(logit1), .img_slot(img_slot), .busy(busy),
@@ -30,16 +31,22 @@ module tb_drowsy_fsm;
     always #5 clk = ~clk;
 
     // mock CNN: answer `delay` cycles after cnn_start with the current eye / logits
-    always @(posedge clk) if (cnn_start) begin
-        starts = starts + 1;
-        repeat (delay) @(posedge clk);
-        cnn_done <= 1'b1;
-        @(posedge clk) cnn_done <= 1'b0;
+    // (counter, no waits inside the always block: xsim never finished the old repeat/@ version)
+    integer cnt = 0;
+    always @(posedge clk) begin
+        cnn_done <= 1'b0;
+        if (cnn_start) begin
+            starts = starts + 1;
+            cnt <= delay;
+        end else if (cnt != 0) begin
+            cnt <= cnt - 1;
+            if (cnt == 1) cnn_done <= 1'b1;
+        end
     end
 
     initial begin
-        $readmemh("vectors/drowsy_trace.mem", trace);
-        $readmemh("../mem/seq.mem", seq);
+        $readmemh(`VEC("drowsy_trace.mem"), trace);
+        $readmemh(`MEM("seq.mem"), seq);
         repeat (4) @(negedge clk); rst = 0;
         // ---------------- part 1: manual mode vs drowsy_ref ----------------
         for (i = 0; i < N; i = i + 1) begin
@@ -120,4 +127,5 @@ module tb_drowsy_fsm;
         else             $display("FAIL tb_drowsy_fsm: %0d errors", errors);
         $finish;
     end
+    initial begin #5_000_000; $display("FAIL tb_drowsy_fsm: timeout"); $finish; end
 endmodule

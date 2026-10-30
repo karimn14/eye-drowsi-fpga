@@ -34,7 +34,8 @@ Expected: 7 × `PASS`; `tb_top_real` (~3 min) checks all 16 images bit-exact aga
 Vivado (GUI): open/create a Basys3 project, then in the Tcl console
 `source {<repo>/integration/scripts/add_sources.tcl}` → Generate Bitstream → program.
 Batch: `cd integration && vivado -mode batch -source scripts/create_project.tcl && vivado -mode batch -source scripts/build.tcl`.
-Full guide and board test table: [docs/VIVADO_BOARD_GUIDE.md](docs/VIVADO_BOARD_GUIDE.md).
+Full guide and board test table: [docs/VIVADO_BOARD_GUIDE.md](docs/VIVADO_BOARD_GUIDE.md); Vivado simulator (6 testbenches in
+sim_1): [docs/VIVADO_SIM_GUIDE.md](docs/VIVADO_SIM_GUIDE.md).
 
 ## Board controls
 

@@ -34,7 +34,7 @@ for tb in $TBS; do
   [ -f "$tb.v" ] || { echo "SKIP $tb (no $tb.v)"; continue; }
   opts=""; files=""
   for w in ${SRC[$tb]}; do case "$w" in -*) opts="$opts $w" ;; *) files="$files $w" ;; esac; done
-  if ! "$IV/iverilog" -g2012 -Wall -I"$RTL" $opts -o "build/$tb.vvp" "$tb.v" $files 2> "build/$tb.compile.log"; then
+  if ! "$IV/iverilog" -g2012 -Wall -I"$RTL" -I. $opts -o "build/$tb.vvp" "$tb.v" $files 2> "build/$tb.compile.log"; then
     echo "FAIL $tb (compile, see sim/build/$tb.compile.log)"; fail=1; continue
   fi
   grep -v "timescale" "build/$tb.compile.log" | grep -i -E "warning|error" | head -3

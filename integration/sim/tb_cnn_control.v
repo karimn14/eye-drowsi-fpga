@@ -1,4 +1,5 @@
 `timescale 1ns/1ps
+`include "tb_paths.vh"
 `include "model_params.vh"
 // tb_cnn_control.v - cnn_control driving a behavioural integer datapath (one MAC, act = clip(acc>>>S,0,127),
 // 2x2 max, FC) on the real export (weights.mem, biases.mem, images.mem). For all 16 slots the activation
@@ -61,9 +62,9 @@ module tb_cnn_control;
     end
 
     initial begin
-        $readmemh("../mem/images.mem", img); $readmemh("../mem/weights.mem", wm);
-        $readmemh("../mem/biases.mem", bm);   $readmemh("../mem/stub_logits.mem", gl);
-        $readmemh("vectors/expected_a1.mem", ea1); $readmemh("vectors/expected_a2.mem", ea2);
+        $readmemh(`MEM("images.mem"), img); $readmemh(`MEM("weights.mem"), wm);
+        $readmemh(`MEM("biases.mem"), bm);   $readmemh(`MEM("stub_logits.mem"), gl);
+        $readmemh(`VEC("expected_a1.mem"), ea1); $readmemh(`VEC("expected_a2.mem"), ea2);
         wc = 0;
         repeat (3) @(negedge clk); rst = 0;
         for (n = 0; n < NIMG; n = n + 1) begin
