@@ -24,12 +24,36 @@ module tb_cnn;
     always #5 clk = ~clk; // 100MHz clock
 
     integer img_i;
+    integer correct_count;
+    reg expected_label [0:15];
+    reg expected_prediction;
+
+    initial begin
+        // Labels from ml/export/expected.txt: 0 = CLOSED, 1 = OPEN.
+        expected_label[0]  = 1;
+        expected_label[1]  = 0;
+        expected_label[2]  = 0;
+        expected_label[3]  = 1;
+        expected_label[4]  = 0;
+        expected_label[5]  = 1;
+        expected_label[6]  = 0;
+        expected_label[7]  = 1;
+        expected_label[8]  = 0;
+        expected_label[9]  = 1;
+        expected_label[10] = 0;
+        expected_label[11] = 1;
+        expected_label[12] = 0;
+        expected_label[13] = 1;
+        expected_label[14] = 0;
+        expected_label[15] = 1;
+    end
 
     initial begin
         clk = 0;
         rst = 1;
         start = 0;
         img_base_addr = 0;
+        correct_count = 0;
 
         #100;
         rst = 0;
@@ -49,10 +73,21 @@ module tb_cnn;
             wait(done);
             #20;
 
-            $display("Image %2d | Base Addr: %5d | Pred: %s | Logit0: %d | Logit1: %d",
-                     img_i, img_base_addr, prediction ? "OPEN  " : "CLOSED", logit0, logit1);
+            expected_prediction = expected_label[img_i];
+            if (prediction == expected_prediction) begin
+                correct_count = correct_count + 1;
+                $display("Image %2d | Expected: %s | Pred: %s | CORRECT | Logit0: %d | Logit1: %d",
+                         img_i, expected_prediction ? "OPEN  " : "CLOSED",
+                         prediction ? "OPEN  " : "CLOSED", logit0, logit1);
+            end else begin
+                $display("Image %2d | Expected: %s | Pred: %s | WRONG   | Logit0: %d | Logit1: %d",
+                         img_i, expected_prediction ? "OPEN  " : "CLOSED",
+                         prediction ? "OPEN  " : "CLOSED", logit0, logit1);
+            end
         end
 
+        $display("====================================================");
+        $display("   Classification accuracy: %0d / 16", correct_count);
         $display("====================================================");
         $display("   Simulation Complete!");
         $display("====================================================");

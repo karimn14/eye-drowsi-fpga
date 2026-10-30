@@ -37,9 +37,9 @@ and hardware details.
 | int8 model accuracy | train 97.2% · valid 94.4% · **test 98.1%** (108 images) | Recomputed from `ml/export/*.mem` and `ml/*.npz` with the bit-exact NumPy model |
 | RTL vs. golden model | **16/16 logit pairs identical** (`rtl/cnn_top.v`) | Icarus Verilog via `./run_sim.sh` |
 | Unit tests | All pass with 0 errors | `./run_sim.sh` |
-| Latency | Approximately 75.8k cycles/image (approximately 0.76 ms at 100 MHz) | Total simulation time of `tb_cnn` divided by 16 |
-| Resources | 5,063 LUT (24%), 9,858 FF (24%), 5 BRAM, 0 DSP | Vivado 2024.2 reports in `docs/reports/` |
-| **Timing at 100 MHz** | **Not met:** WNS −7.2 ns; worst path approximately 17.3 ns (approximately 58 MHz) | Vivado reports in `docs/reports/` |
+| Latency | The previous sequential RTL was approximately 75.8k cycles/image | Historical measurement; the behavioral refactor must be measured again |
+| Resources | 5,063 LUT (24%), 9,858 FF (24%), 5 BRAM, 0 DSP | Historical Vivado 2024.2 reports in `docs/reports/` |
+| **Timing at 100 MHz** | **Not yet verified for the behavioral RTL** | The historical pre-refactor design had WNS −7.2 ns |
 
 > **Evaluation caveat:** The test set is small and all samples come from one
 > subject. Treat the 98.1% test accuracy as optimistic; see the issues document
@@ -52,8 +52,12 @@ and hardware details.
 ├── run_sim.sh                  # Runs all simulations and checks golden outputs
 ├── rtl/
 │   ├── basys3_wrapper.v        # FPGA top: buttons, switches, LEDs, 7-segment
-│   ├── cnn_top.v               # CNN engine (FSM), fixed version
-│   ├── rom_weights.v           # Weight, bias, and image ROMs
+│   ├── cnn_top.v               # Layer scheduler
+│   ├── cnn_image_loader.v      # Image ROM and input loader
+│   ├── cnn_conv1_layer.v       # Conv1, ReLU, and max-pooling
+│   ├── cnn_conv2_layer.v       # Conv2, ReLU, and max-pooling
+│   ├── cnn_fc_layer.v          # Fully-connected layer and argmax
+│   ├── rom_weights.v           # Legacy synchronous ROM implementation
 │   ├── seven_seg_drive.v       # Displays OPN / CLSD / ----
 │   ├── conv_pe.v, relu_requant.v
 │   ├── conv_act.v, maxpool2x2.v # Helper modules
@@ -86,6 +90,11 @@ No Vivado installation is required. Install `iverilog`, `python3`, and
 
 The expected final line is `ALL TESTS PASSED`.
 
+The Vivado testbench also compares every prediction with the labels in the
+exported test set and prints `CORRECT` or `WRONG` for each image, followed by
+the classification total. Images 0 and 1 are intentionally included model
+misses, so the expected result is `14 / 16`.
+
 ### 2. Retrain and re-export (optional)
 
 The committed files in `ml/` are sufficient to reproduce the exported model.
@@ -113,6 +122,48 @@ vivado -mode batch -source vivado/create_project.tcl
 Open the generated project, then run synthesis, implementation, and bitstream
 generation. Check timing first: the current design does not meet 100 MHz, and
 the existing Vivado resource reports were produced before the RTL fix.
+
+#### Vivado simulation top levels
+
+Vivado has two different top-level settings:
+
+| Setting | Correct value for this eye project |
+|---|---|
+| **Design top** (`sources_1`) | `basys3_wrapper` |
+| **Simulation top** (`sim_1`) | `tb_cnn` from `sim/tb_cnn.v` |
+
+`tb_cnn` instantiates `cnn_top` and checks all 16 stored eye images. Do **not**
+use `tb_cnn_core`: that testbench belongs to the separate
+[`examples/digits-demo-basys3`](examples/digits-demo-basys3) digit demo.
+
+The simulation log should contain the eye-project testbench and files similar
+to:
+
+```text
+tb_cnn.v
+cnn_top.v
+cnn_image_loader.v
+cnn_conv1_layer.v
+cnn_conv2_layer.v
+cnn_fc_layer.v
+```
+
+If the Vivado Sources panel shows `examples/digits-demo-basys3` or
+`tb_cnn_core`, close that project and create a clean one using
+`vivado/create_project.tcl`. For an existing project, the equivalent Tcl
+settings are:
+
+```tcl
+set_property top basys3_wrapper [get_filesets sources_1]
+set_property top tb_cnn [get_filesets sim_1]
+update_compile_order -fileset sources_1
+update_compile_order -fileset sim_1
+```
+
+The project path in the simulation log must also point to this repository:
+`D:/project/cnn-eye-drowsiness-basys3/cnn-eye-drowsiness-basys3`. A path
+containing `eye-drowsi-fpga/eye-drowsi-fpga` indicates a different or copied
+Vivado project.
 
 ### 4. Use the board
 

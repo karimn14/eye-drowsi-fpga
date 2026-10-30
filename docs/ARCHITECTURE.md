@@ -38,24 +38,45 @@ The 16 demo images are chosen by `quantize_export.py`: the first two are the mod
 basys3_wrapper ── btnR → rising-edge → start
       │          btnC → async reset
       │          SW[3:0] → img_base_addr = SW × 1024
-      ├── cnn_top ── rom_weights (sync-read ROMs + image ROM, $readmemh)
-      │      FSM: IDLE → LOAD (576 px → img_mem) → CONV1 (+ReLU+pool → a1_mem 4×11×11)
-      │            → CONV2 (+ReLU+pool → a2_mem 8×4×4 stored as 128 bytes) → FC (class 0, class 1) → DONE
+      └── cnn_top ── layer scheduler
+            ├── cnn_image_loader  (576 px → image_flat)
+            ├── cnn_conv1_layer   (Conv1 + ReLU + pool → a1_flat)
+            ├── cnn_conv2_layer   (Conv2 + ReLU + pool → a2_flat)
+            └── cnn_fc_layer      (FC + argmax → logits/prediction)
       └── seven_seg_drive ── "----" while busy, "OPN " / "CLSD" when done
 ```
 
-* One multiply-accumulate at a time, strictly sequential (2 clocks per MAC: ROM address, then accumulate). No DSP slices are used by the synthesised design (multiplies went to LUTs).
-* Each pooled output re-computes its four conv outputs; intermediate maps live in register arrays (`img_mem`, `a1_mem`, `a2_mem`), not block RAM.
-* Latency ≈ 75.8 k clocks per image.
+* The active RTL is behavioral: each layer module computes its complete output
+  when its `start` pulse is asserted and returns a one-cycle `done` pulse.
+  Intermediate maps use packed layer interfaces (`image_flat`, `a1_flat`,
+  `a2_flat`).
+* This organization is intended to keep the design readable and make each
+  layer independently replaceable. It is not a resource-efficient
+  implementation: synthesis, timing, and BRAM/DSP inference must be measured
+  again after this refactor.
 * `cnn_top` ports: `clk, rst (async, active-high), start, img_base_addr[13:0] → done, prediction, logit0, logit1 (signed 32)`.
 * Weight ROMs are **synchronous-read**: data appears one clock after the address. This is exactly what the original design got wrong — see below.
 
-## 4. The ROM-latency bug and its fix
+## 4. Behavioral layer implementation
 
-Original `cnn_top.v` *registered* the weight address in the `*_REQ` state (`c1_w_addr <= ...`) and consumed `c1_w_data` in the following `*_ACC` state. With a synchronous ROM that means the data in `*_ACC` belongs to the **previous** tap → wrong weights, wrong logits, and `x` for the first image (ROM output not yet initialised).
-Fix (`rtl/cnn_top.v`): `c1_w_addr`, `c2_w_addr`, `fc_w_addr` became combinational `wire`s computed from the loop counters (`f1*9+kr1*3+kc1`, `f2*36+ch1*9+kr2*3+kc2`, `cls*128+fc_cnt`). Nothing else changed (`diff` against `rtl/legacy/cnn_top_original_buggy.v` shows 8 small hunks, all about these three addresses).
-Evidence: original reproduces the team's xsim log (image 1 = −8745 / 11344 instead of −632 / 3752); fixed version matches all 16 golden logit pairs.
+The numerical path is now split into
+[`cnn_image_loader.v`](../rtl/cnn_image_loader.v),
+[`cnn_conv1_layer.v`](../rtl/cnn_conv1_layer.v),
+[`cnn_conv2_layer.v`](../rtl/cnn_conv2_layer.v), and
+[`cnn_fc_layer.v`](../rtl/cnn_fc_layer.v). Each module loads only the ROM
+content it owns and exposes a simple `start`/`done` interface. This removes the
+layer-specific counters and synchronous-ROM timing from `cnn_top.v`.
 
-## 5. Stand-alone blocks (not integrated yet)
+The previous synchronous-ROM implementation is retained in
+`rtl/legacy/cnn_top_original_buggy.v` for history. The current behavioral
+implementation should be compared against `ml/export/expected.txt` before
+hardware synthesis.
+
+## 5. Stand-alone pipelined blocks
 
 `conv_pe.v` (parameter `NTAPS` 9 or 36, 2-clock latency, throughput 1 output per clock) and `relu_requant.v` (parameter `SHIFT`) were written as a faster, testable replacement for the sequential datapath. They pass their unit tests (`sim/unit/`) but `cnn_top.v` does not instantiate them. `conv_act.v` and `maxpool2x2.v` are older helper modules that nothing instantiates.
+
+The current top-level behavioral layer modules are separate from these
+pipelined building blocks. They prioritize readable layer boundaries and
+bit-exact simulation; the pipelined blocks remain available for a later
+resource- and timing-oriented implementation.
