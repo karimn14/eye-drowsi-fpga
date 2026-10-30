@@ -153,6 +153,27 @@ update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
 ```
 
+If synthesis reports:
+
+```text
+[Synth 8-4391] module 'rom_weights' not found
+```
+
+the open Vivado project does not contain the current ROM source, even if the
+file exists on disk. In the Tcl Console, add it to the active design fileset
+and refresh compile order:
+
+```tcl
+add_files -norecurse D:/project/cnn-eye-drowsiness-basys3/cnn-eye-drowsiness-basys3/rtl/rom_weights.v
+update_compile_order -fileset sources_1
+set_property top basys3_wrapper [get_filesets sources_1]
+```
+
+Then right-click **Synthesis** and choose **Reset Runs**, followed by **Run
+Synthesis**. If the warning persists, close the project and run the complete
+`vivado/create_project.tcl` script instead; do not keep adding duplicate
+copies of `cnn_top.v` or `rom_weights.v`.
+
 The project path in the simulation log must also point to this repository:
 `D:/project/cnn-eye-drowsiness-basys3/cnn-eye-drowsiness-basys3`. A path
 containing `eye-drowsi-fpga/eye-drowsi-fpga` indicates a different or copied
