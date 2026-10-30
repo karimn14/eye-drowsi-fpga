@@ -1,0 +1,30 @@
+CNN golden-model report
+=======================
+Dataset            : sklearn digits 8x8 (1257 train / 540 test), pixels quantised to uint4
+Network            : Conv3x3x4 (valid) -> ReLU -> MaxPool2x2 -> FC 36x10 -> argmax
+Tensor layouts     : image[row*8+col] uint4 | conv_w[f*9+ky*3+kx] int8 | feature[f*9+py*3+px] uint7
+                     fc_w[class*36+feature] int8
+Fixed point        : conv acc int18 (max |acc| seen 5267), requant: (relu(max4)+2^(S1-1))>>S1, sat 127, S1=6
+                     fc acc int24 (max |logit| seen 12042), no final scaling, argmax (lowest index wins ties)
+Scales             : Sw1=27.212  Sa=6.378  Sw2=47.299   max feature value (train)=82
+Float test acc     : 97.78 %
+Int8 golden acc    : 97.96 %   (529/540)
+Float/int agreement: 99.81 %
+
+Demo images (SW[3:0] -> label / golden pred):
+  SW= 0  label=0  pred=0  OK
+  SW= 1  label=1  pred=1  OK
+  SW= 2  label=2  pred=2  OK
+  SW= 3  label=3  pred=3  OK
+  SW= 4  label=4  pred=4  OK
+  SW= 5  label=5  pred=5  OK
+  SW= 6  label=6  pred=6  OK
+  SW= 7  label=7  pred=7  OK
+  SW= 8  label=8  pred=8  OK
+  SW= 9  label=9  pred=9  OK
+  SW=10  label=9  pred=4  MISS
+  SW=11  label=6  pred=6  OK
+  SW=12  label=1  pred=1  OK
+  SW=13  label=6  pred=6  OK
+  SW=14  label=3  pred=3  OK
+  SW=15  label=0  pred=0  OK

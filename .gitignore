@@ -1,0 +1,25 @@
+# simulation / build outputs
+build/
+*.vvp
+*.vcd
+*.wdb
+*.jou
+*.log
+!docs/reports/*.log
+# Vivado generated
+vivado/build/
+*.cache/
+*.runs/
+*.sim/
+*.hw/
+*.ip_user_files/
+.Xil/
+*.dcp
+*.bit
+# raw dataset (download from Roboflow, see ml/README.md)
+ml/train/
+ml/valid/
+ml/test/
+# python
+__pycache__/
+*.pyc

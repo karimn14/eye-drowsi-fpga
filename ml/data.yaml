@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 2
+names: ['eye_closed', 'eye_open']
+
+roboflow:
+  workspace: michaelreynaldi890-gmail-com
+  project: eye-detection-spucg-tdc0s
+  version: 1
+  license: Public Domain
+  url: https://universe.roboflow.com/michaelreynaldi890-gmail-com/eye-detection-spucg-tdc0s/dataset/1

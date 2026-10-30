@@ -1,0 +1,24 @@
+Time resolution is 1 ps
+====================================================
+   Starting CNN Eye Drowsiness Detection Simulation 
+====================================================
+Image  0 | Base Addr:     0 | Pred: C@EB   | Logit0:           x | Logit1:           x
+Image  1 | Base Addr:  1024 | Pred: OPEN   | Logit0:       -8745 | Logit1:       11344
+Image  2 | Base Addr:  2048 | Pred: CLOSED | Logit0:        3925 | Logit1:       -2681
+Image  3 | Base Addr:  3072 | Pred: OPEN   | Logit0:       -6705 | Logit1:        9357
+Image  4 | Base Addr:  4096 | Pred: OPEN   | Logit0:       -5468 | Logit1:        8888
+Image  5 | Base Addr:  5120 | Pred: OPEN   | Logit0:       -3712 | Logit1:        6727
+Image  6 | Base Addr:  6144 | Pred: CLOSED | Logit0:        5905 | Logit1:       -4472
+Image  7 | Base Addr:  7168 | Pred: OPEN   | Logit0:       -7806 | Logit1:       10852
+Image  8 | Base Addr:  8192 | Pred: OPEN   | Logit0:       -5172 | Logit1:        8729
+Image  9 | Base Addr:  9216 | Pred: OPEN   | Logit0:       -7977 | Logit1:       11084
+Image 10 | Base Addr: 10240 | Pred: CLOSED | Logit0:        1840 | Logit1:        -699
+Image 11 | Base Addr: 11264 | Pred: OPEN   | Logit0:       -6225 | Logit1:        9359
+Image 12 | Base Addr: 12288 | Pred: CLOSED | Logit0:        4380 | Logit1:       -2633
+Image 13 | Base Addr: 13312 | Pred: OPEN   | Logit0:       -7775 | Logit1:       10816
+Image 14 | Base Addr: 14336 | Pred: CLOSED | Logit0:        6660 | Logit1:       -5124
+Image 15 | Base Addr: 15360 | Pred: OPEN   | Logit0:        -867 | Logit1:        3128
+====================================================
+   Simulation Complete!
+====================================================
+$finish called at time : 12132795 ns : File "C:/Users/Asus/Downloads/eye-detection-1/verilog/tb_cnn.v" Line 59
