@@ -8,6 +8,11 @@ All 6 PASS (30 Oct).
 > Note (5 Nov): the 150 MHz `cnn150` core takes 712 cycles = 4.75 µs (100 MHz core 702 = 7 µs; 4 Nov: 7,996 = 80 µs); absolute times in the tables
 > below were measured with the old 37,290-cycle core, so later events now happen earlier (parallel core (4 Nov)).
 
+> Verification scope: [5 Nov review](../../docs/reports/build_150mhz_20261105/README.md)
+> records a passing board-top test with idle STEP shortened only. The original
+> full idle-heavy run was stopped, and three standalone layer harnesses remain
+> stale/failing. This guide does not claim a full regression PASS.
+
 ## 1. Open and run
 
 1. Open Vivado from the Start menu → **Open Project** → your `.xpr`.
@@ -16,10 +21,10 @@ All 6 PASS (30 Oct).
    `tb_top_real` simulates **70.37 ms**, which takes a few minutes of real time.
 3. When it stops, look at the **Tcl Console** (bottom). Expected lines:
    ```
-   manual: 16 slots checked, 0 errors; cnn_top latency 7996 cycles (79 us)
+   manual: 16 slots checked, 0 errors; cnn_top latency 712 cycles (4 us)
    sequence: 64 frames checked (13 in MICROSLEEP), 0 errors total
    scan: 16 frames checked, 0 errors total
-   PASS tb_top_real (cnn_top: 16 slots bit-exact, latency 7996 cycles)
+   PASS tb_top_real (cnn_top: 16 slots bit-exact, latency 712 cycles)
    $finish called at time : 70368550 ns
    ```
    The testbench checks everything itself: if the last line says **PASS**, the design is correct.
@@ -46,7 +51,9 @@ run all
 (Or with the mouse: **Scope** panel → expand `tb_top_real` → click `dut` → **Objects** panel → select signals →
 right-click → *Add to Wave Window*; then toolbar **Restart** (⟲) and **Run All** (▶).)
 
-Do **not** add signals inside `dut/u_core` (the CNN): they change every cycle for 70 ms and the waveform file gets huge.
+Avoid recording all CNN signals for a long run: current default hierarchy is
+`dut/g_cnn150/u_core` (100 MHz alternative: `dut/g_cnn100/u_core`). Prefer
+a short targeted capture; wide banked memories can produce large waveforms.
 
 Tips: **Zoom Fit** shows the whole run; `frame_done` / `cnn_start` are 1-cycle pulses, invisible when zoomed out:
 select the signal and use **Go to Next Transition** (toolbar arrow) to jump between them.
@@ -54,7 +61,7 @@ select the signal and use **Go to Next Transition** (toolbar arrow) to jump betw
 Meaning of signals: `eye_state` 1 = closed, 0 = open; `drowsy_state` 0 AWAKE, 1 DROWSY, 2 MICROSLEEP;
 LEDs `[3:0]` slot, `[4]` busy, `[5]` eye closed, `[6]` sequence mode, `[13:7]` PERCLOS bar, `[14]` DROWSY, `[15]` MICROSLEEP.
 
-## 3. What happens when (tb_top_real, 100 MHz in simulation)
+## 3. Historical timeline (old core, 100 MHz simulation clock)
 
 | Time | Part | What to look at |
 |---|---|---|
@@ -67,7 +74,10 @@ LEDs `[3:0]` slot, `[4]` busy, `[5]` eye closed, `[6]` sequence mode, `[13:7]` P
 
 ### Part 1: one frame per slot (`frame_done` at 0.374 ms + n × 0.3745 ms)
 
-`latency` is always **7996 cycles** (= 80.0 µs at 100 MHz, in simulation and on the board; the display shows `0079`).
+The table above records an earlier 7996-cycle core (79.96 us at 100 MHz).
+Current integrated counter is 712 cycles; us=4/display 0004 at 150 MHz.
+The behavioral top test bypasses MMCM and uses its own simulation clock;
+confirm real 150 MHz separately using routed generated-clock/timing reports.
 `eye_state` = 1 when logit0 ≥ logit1. Values = Python golden (fixed-point export, S2 = 6); slots 0 and 1 are the
 model's two misclassified test images (closed image → open, open image → closed):
 

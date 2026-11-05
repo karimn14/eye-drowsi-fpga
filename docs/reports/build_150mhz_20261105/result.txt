@@ -1,0 +1,1 @@
+top=drowsiness_top part=xc7a35tcpg236-1 clock_mhz=150 uart_baud=1000000 setup_ns=0.158 hold_ns=0.015

@@ -32,64 +32,50 @@ Quantisation: `ml/quantize_export.py` — per-tensor symmetric int8 weights; shi
 
 The 16 demo images are chosen by `quantize_export.py`: the first two are the model's misclassified test images (so **demo images 0 and 1 are expected to be wrong**), the remaining 14 alternate closed/open.
 
-## 3. Active integrated system
+## 3. Active 150 MHz system (5 Nov)
 
-`integration/rtl/drowsiness_top.v` instantiates the CNN, UART/upload staging
-RAM, temporal FSM, board controls/display and buzzer. The host captures and
-localizes the selected eye, crops/resizes/remaps contrast, then sends 576
-uint8 pixels. GUI results are FPGA decisions; recorder EAR indicators are a
-separate host heuristic. See [active interface](../integration/docs/INTERFACE.md).
+integration/rtl/drowsiness_top.v defaults to CLK_MHZ=150 and selects
+rtl/cnn150/cnn_top_150.v. MMCM multiplies the board 100 MHz clock by 9
+and divides by 6. The integrated build explicitly sets UART_BAUD=1000000;
+the bare module parameter still defaults to 115200, so do not omit the build
+generics when creating a custom project. [Active interface](../integration/docs/INTERFACE.md).
 
-## 3a. Standalone CNN wrapper (separate board demo)
+The default hardware has 48 conv1, 64 conv2 and 8 FC MAC operations in
+parallel, mapped to 80 DSP plus LUT multipliers. Image RAM has eight copies;
+activation/weight banks supply parallel reads. Loading overlaps conv1 and
+conv1 overlaps conv2, with source thresholds LOAD_AHEAD=224 and
+L2_AHEAD_WR=66. The cnn150 path adds RAM-read/MAC/address/pooling pipeline
+registers for the shorter clock period. Arithmetic, tensor order and golden
+logits remain unchanged; additional parallelism changes memory interfaces.
 
-```
-basys3_wrapper ── btnR → rising-edge → start
-      │          btnC → async reset
-      │          SW[3:0] → img_base_addr = SW × 1024
-      └── cnn_top ── sequencing FSM + img/a1/a2 buffers (synchronous reads)
-            ├── LOAD  (576 px → img_mem)
-            ├── conv1_layer (mac_pipe + relu_requant S1 + maxpool2x2 → a1_mem)
-            ├── conv2_layer (mac_pipe + relu_requant S2 + maxpool2x2 → a2_mem)
-            └── fc_layer    (mac_pipe, FC + argmax → logits/prediction)
-      └── seven_seg_drive ── "----" while busy, "OPN " / "CLSD" when done
-```
+The default integrated system counter measures 712 cycles, 4.7466667 us.
+The separate new 100 MHz rtl/cnn_top.v takes about 702 cycles, 7.02 us.
+The former 4 Nov 14-DSP design took 7996 cycles/79.96 us; it is historical.
 
-* Each layer has its own pipelined multiply-accumulate lanes (`mac_pipe`):
-  conv1 computes 4 filters in parallel, conv2 computes 8 filters in parallel,
-  and FC computes both classes in parallel. The layers still run one after the
-  other (7,996 cycles per image, 80 µs at 100 MHz); parallel lanes reduce
-  the number of taps per output rather than changing the layer sequencing.
-* `rom_weights.v` reads the exported `.mem` files through synchronous ROM
-  ports and packs all filter/class lanes for the current tap into one word
-  (`conv1=32`, `conv2=64`, `fc=16` bits). The layer buffers are written one
-  value at a time instead of being transferred as large packed vectors.
-* The img / a1 / a2 buffers are read synchronously (one clock after the
-  address), so Vivado maps them to block RAM and the core meets 100 MHz:
-  current integrated build: setup +0.948 ns, hold +0.067 ns, 2,376 LUT /
-  2,230 FF / 7.5 BRAM / 14 DSP (9dac154, Vivado 2025.2, 4 Nov).
-  [Exact build evidence](reports/current_build_20261104/README.md).
-  The 601 LUT / 3 DSP / +2.385 ns figures belong to the older 2 Nov design.
-* `cnn_top` ports include `clk, rst` (async active-high), `start`,
-  `img_base_addr[13:0]`, `external_image`, `external_addr[9:0]`,
-  `external_data[7:0]`, `done`, `prediction`, signed 32-bit `logit0/1`.
-  External input is enabled by parameter EXTERNAL_INPUT in the integrated top.
-* Weight ROMs are **synchronous-read**: data appears one clock after the address. This is exactly what the original design got wrong — see below.
+Current independent routed build at 97f91ae: 9,249 LUT, 8,390 FF, 18.5 BRAM,
+80 DSP; setup +0.158 ns / hold +0.015 ns. [Raw evidence](reports/build_150mhz_20261105/README.md).
+These values apply to this exact top/build; old 3/14-DSP reports remain archives.
 
-## 4. Pipelined layer implementation
+## 4. Boundaries and verification
 
-`cnn_top.v` is a structural top: it loads the image, owns the three buffers
-and starts `conv1_layer`, `conv2_layer` and `fc_layer` in turn. Each layer
-pipelines address generation, the synchronous buffer/ROM read and the MAC
-(`mac_pipe`), so one tap is accumulated per clock without hundreds of
-parallel multipliers. The requant shift is a parameter of each layer's
-`relu_requant` and must equal `S1` / `S2` in `ml/export/params.txt`
-(`integration/scripts/gen_sim_data.py` checks this). The earlier sequential
-one-MAC `cnn_top` (75,826 cycles, 50 MHz only) is in git history; the original
-buggy version stays in `rtl/legacy/cnn_top_original_buggy.v`.
+Host MediaPipe performs localization, then Reyn eye+brow crop, Y +0.10,
+grayscale/INTER_AREA 24x24 and contrast 60..235. Default norm none leaves
+those bytes intact; optional norm train adds per-crop training-statistic
+matching. UART carries 576 bytes with CRC; synchronous staging supplies one
+pixel per requested address. Internal cnn150 RAM reads have two register
+stages, while the external pixel memory contract remains one clock.
 
-## 5. Stand-alone pipelined blocks
+Core ports: clk, asynchronous active-high rst, start, img_base_addr[13:0],
+external_image, external_addr[9:0], external_data[7:0], done, prediction and
+signed 32-bit logit0/1. EXTERNAL_INPUT enables upload support. Completion is
+a pulse; prediction=1 means OPEN. System eye_state=1 means CLOSED.
 
-`relu_requant.v` (parameter `SHIFT`) and `maxpool2x2.v` are used inside
-`conv1_layer` / `conv2_layer`. `conv_pe.v` (parameter `NTAPS` 9 or 36, 2-clock
-latency, throughput 1 output per clock) passes its unit tests (`sim/unit/`)
-but is not instantiated; `conv_act.v` and `mac_unit.v` are unused helpers.
+ROM control, temporal counters, LEDs/display and buzzer are in integration/.
+Root basys3_wrapper is a separate 100 MHz demonstration with different buttons;
+use the integrated top for current UART/webcam tests. Recorder EAR status is
+a host heuristic and never replaces the FPGA CNN/temporal result.
+
+Core golden, 83 random/boundary external frames and a shortened-idle board-top
+sequence passed review. Three old standalone layer harnesses have outdated
+ports/bank wiring and fail; no full-suite PASS is claimed. [Current status](STATUS_AND_ISSUES.md).
+Original buggy RTL and previous reports stay in legacy/archive directories.

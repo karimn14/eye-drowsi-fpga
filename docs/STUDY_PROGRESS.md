@@ -1,5 +1,17 @@
 # Development Progress
 
+## 2026-11-05: Normalization default and current documentation
+
+Operator confirms good external-webcam classification with --norm none;
+restored that host/GUI default while retaining train as an explicit option.
+Reconciled active documentation with 97f91ae: 150 MHz MMCM, 712 system cycles,
+1 Mbaud build/host, 34 host tests, 80 DSP banked/overlapped core, new build
+resource/timing evidence and explicit three stale standalone layer failures.
+Archived independent 150 MHz reports and selected PASS/FAIL logs without
+rewriting old evidence. Marked removed CI as absent rather than implying
+automatic coverage. This update does not alter FPGA RTL, weights or bitstream.
+
+
 This is a dated journal, not the current status dashboard. Earlier pending
 statements apply to their sessions. See [current status](STATUS_AND_ISSUES.md).
 

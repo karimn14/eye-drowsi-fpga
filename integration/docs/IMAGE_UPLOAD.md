@@ -65,7 +65,7 @@ byte value, including NUL/CR/LF/XON/XOFF; software flow control stays off.
 
 Replies added:
 - `ERR CRC`: complete payload failed checksum; no valid image remains.
-- `ERR TIMEOUT`: reception stopped for one second at 100 MHz defaults.
+- `ERR TIMEOUT`: reception stopped for one second at the configured clock.
 - `ERR FRAME`: UART framing error, including during binary reception.
 - `ERR NOFRAME`: RUN_FRAME without a complete unconsumed image.
 - `ERR ID`: wrong buffered ID or immediate reuse of the last consumed ID.
@@ -98,8 +98,8 @@ after validation. The first implementation uses one staging buffer, with
 no overlapping upload/inference. ROM mode remains the default for standalone
 cnn_top instances. Weights/biases stay in ROM.
 
-Link latency (5 Nov). `UART_BAUD` defaults to 1,000,000 (divider exactly 100 at
-100 MHz; `tb_uart_phy` runs at that divider including the baud-tolerance cases).
+Link latency (5 Nov). The build script sets `UART_BAUD=1000000` (the bare RTL parameter remains
+115200). Divider is exactly 150 at 150 MHz, or 100 at 100 MHz; `tb_uart_phy` covers baud tolerance.
 `build_uart.tcl <out> 115200` still builds a legacy-baud bitstream. Modelled
 per-frame transaction (`python tools/fake_fpga.py --baud B --usb-ms U`,
 cumulative ms to READY / OK FRAME / OK RUN / RESULT):

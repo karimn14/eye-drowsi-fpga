@@ -2,12 +2,12 @@
 
 Board top level around the CNN core of this repo (`rtl/cnn_top.v` + `rtl/rom_weights.v`, used as is, not copied):
 buttons/switches, the drowsiness state machine (PERCLOS window, DROWSY / MICROSLEEP alarms), 7-segment and LED
-output, 100 MHz system clock (optional 50 MHz MMCM), simulation and Vivado scripts.
+output, 150 MHz system clock from MMCM (optional 100 MHz direct/legacy 50 MHz), simulation and Vivado scripts.
 
 ```text
 integration/
 ├── rtl/
-│   ├── drowsiness_top.v    # FPGA top: 100 MHz (CLK_MHZ), input_control, drowsy_fsm, cnn_top, alert_control
+│   ├── drowsiness_top.v    # FPGA top: 150 MHz (CLK_MHZ), input_control, drowsy_fsm, cnn_top, alert_control
 │   ├── input_control.v     # btnU reset sync, btnC debounce + one-pulse, switch sync / debounce
 │   ├── drowsy_fsm.v        # IDLE -> START_CNN -> WAIT_DONE -> UPDATE -> SHOW; drowsiness rules; sequence modes
 │   ├── alert_control.v     # 7-segment OPEn / CLSd / tirE / SLEP / ---- / latency, LED patterns
@@ -60,15 +60,19 @@ A buzzer on Pmod JA1 sounds the DROWSY / MICROSLEEP alarm: see [buzzer](docs/BUZ
 | SW14 | sequence mode (frames every 100 ms from `mem/seq.mem` + drowsiness rules) |
 | SW15 | show latency in µs |
 
-## Current results and demo
+## Current results and verification limits
 
-The board build runs at 150 MHz (MMCM) with `rtl/cnn150/cnn_top_150.v`: 712 cycles = 4.75 us (5 Nov). `CLK_MHZ=100` selects `rtl/cnn_top.v`, 702 cycles = 7.02 us (S1=10, S2=6).
-The full UART/upload/buzzer build at 9dac154 uses 2,376 LUT / 2,230 FF /
-7.5 BRAM / 14 DSP; setup +0.948 ns and hold +0.067 ns. See the
-[build-qualified evidence](../docs/reports/current_build_20261104/README.md).
-The older 2 Nov serial-pipelined/no-UART build had 601 LUT / 3 DSP and is
-historical, not the current resource count.
+The default cnn150 core takes 712 system cycles = 4.7467 us at 150 MHz;
+100 MHz new core takes 702 cycles = 7.02 us. Export remains S1=10/S2=6.
+The independent 97f91ae UART/upload/buzzer build uses 9,249 LUT / 8,390 FF /
+18.5 BRAM / 80 DSP, setup +0.158 ns and hold +0.015 ns. See
+[build evidence](../docs/reports/build_150mhz_20261105/README.md).
 
-For the current board/Windows GUI flow use [setup and demo](../docs/GETTING_STARTED.md).
-The source-driven integrated build command, from repo root, is
-`vivado -mode batch -source integration/scripts/build_uart.tcl`.
+The shell runner selects 14 tests, not proof that every maintained test
+passes. The portable verify_uart.py runner additionally includes three
+standalone layer harnesses that are stale/failing after the new bank/port
+changes. [Current status](../docs/STATUS_AND_ISSUES.md) records this gap.
+
+The canonical GUI setup is [setup and demo](../docs/GETTING_STARTED.md).
+Use `vivado -mode batch -source integration/scripts/build_uart.tcl` from repo
+root; defaults are 150 MHz and 1 Mbaud. CLI and FPGA baud must match.

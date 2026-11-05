@@ -1,5 +1,12 @@
 # Live external webcam to FPGA
 
+Current default (5 Nov operator retest): **--norm none**, including the Windows
+GUI. This preserves crop/grayscale/resize and Reyn contrast remapping, without
+additional per-crop mean/std normalization. The operator reports better visual
+classification on the external webcam with none. Use --norm train explicitly
+for the optional training-statistics experiment; results depend on the camera
+and lighting. Restart the client/GUI to pick up a changed default.
+
 The new Python entry point combines the team's MediaPipe crop function with
 the existing CRC upload protocol. It reads one selected eye per observation,
 keeps one serial connection open and displays the camera, ROI, exact 24x24
@@ -92,10 +99,10 @@ Crop domain: the 85 reyn crops of that run (eyes open) average 124 grey levels
 called all 85 CLOSED; shifted to the training mean/std (`tools/check_crops.py`
 `match_train`) 64/85 were OPEN.
 
-Fix (5 Nov): `--norm train` is now the default. After the reyn crop, each 24x24
+Earlier experiment (5 Nov): `--norm train` was temporarily the default. After the reyn crop, each 24x24
 crop is shifted/scaled to the training mean 79.7 / std 15.7 (`check_crops.match_train`)
-and those exact bytes are shown, uploaded and audited; `--norm none` restores the
-old behaviour. The Windows GUI picks this up automatically through the default.
+and those exact bytes are shown, uploaded and audited. The current default
+is now none, as documented above; the following measurements used train explicitly.
 30 s dry run (open, ~5 s closed, open): 290 results, all golden matches; closures
 gave runs of 23-24 CLOSED -> MICROSLEEP, then DROWSY -> AWAKE; a few 1-6 frame
 CLOSED runs remain while open (partly blinks). Retraining on webcam crops would

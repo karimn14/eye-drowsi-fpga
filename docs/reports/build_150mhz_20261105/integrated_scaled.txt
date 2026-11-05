@@ -1,0 +1,5 @@
+manual: 16 slots checked, 0 errors; cnn_top latency 712 cycles (4 us)
+sequence: 64 frames checked (13 in MICROSLEEP), 0 errors total
+scan: 16 frames checked, 0 errors total
+PASS tb_top_real (cnn_top: 16 slots bit-exact, latency 712 cycles)
+C:\Karan\Program_KCCI\Training_Technical\Project_Modul_3_FPGA\build\review_97f91ae\build\top_real_fast_review\tb_top_real.v:106: $finish called at 3350290000 (1ps)

@@ -1,5 +1,13 @@
 # Integration Decisions
 
+## 2026-11-05: Default extra normalization disabled
+
+Operator retesting found --norm none works better on the external webcam.
+Default the live client (and GUI caller) to none; preserve optional --norm train
+for explicit comparisons. Keep Reyn crop, +0.10 offset, grayscale/resize and
+contrast remapping unchanged. This host setting does not change FPGA arithmetic
+or bitstream, and does not establish generalized webcam accuracy.
+
 Dated decision history. [Current status](STATUS_AND_ISSUES.md) supersedes
 old pending statements.
 

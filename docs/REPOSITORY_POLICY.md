@@ -30,9 +30,10 @@ current index. Original report and test payloads stay intact.
 ## Review and releases
 
 Use a feature branch, integrate main, run relevant checks, push and open a PR
-with scope/evidence/limits. The Repository checks workflow runs Windows
-host/GUI smoke plus Linux core simulations and documentation/archive checks
-on PRs and main pushes, with read-only permissions and pinned action commits.
+with scope/evidence/limits. The previously added Repository checks workflow was removed upstream
+before 97f91ae. No automatic CI is configured now; run host/GUI, documentation
+and core checks manually. The full portable regression has known stale
+layer harness failures, tracked in current status.
 CI is not physical-board acceptance. Documentation
 cleanup should not change RTL or weights.
 

@@ -15,7 +15,7 @@ Webcam -> Laptop: MediaPipe -> eye/brow crop -> grayscale 24x24 -> contrast
 ```
 
 The FPGA also retains 16 ROM test slots and board sequence modes. Camera
-localization/preprocessing runs on the laptop; there is no direct camera
+localization/preprocessing runs on the laptop (current extra normalization: norm none); there is no direct camera
 sensor interface on the FPGA. The model is
 `24x24 u8 -> Conv3x3x4 -> ReLU(>>10, sat 127) -> MaxPool2 -> Conv3x3x8 ->
 ReLU(>>6, sat 127) -> MaxPool2 -> FC 128->2 -> argmax`.
@@ -26,11 +26,11 @@ ReLU(>>6, sat 127) -> MaxPool2 -> FC 128->2 -> argmax`.
 | Measurement | Result | Configuration / evidence |
 |---|---|---|
 | CNN latency | 712 cycles = **4.75 us at 150 MHz** (`rtl/cnn150`, Handy 14704ca, 5 Nov; 100 MHz core: 702 cycles = 7.02 us) | UART integer us field truncates to 4 |
-| FPGA resources | 2,376 LUT, 2,230 FF, 7.5 BRAM, 14 DSP | drowsiness_top + real CNN + UART/upload + buzzer; 9dac154, Vivado 2025.2, build uart_hw_20261104_131740 |
-| Routed timing | Setup +0.948 ns, hold +0.067 ns | [Raw reports and input hashes](docs/reports/current_build_20261104/README.md); all 29 recorded build-input hashes match reviewed main e3ac7ea |
+| FPGA resources | 9,249 LUT, 8,390 FF, 18.5 BRAM, 80 DSP | drowsiness_top + real cnn150 + UART/upload + buzzer; 97f91ae, Vivado 2025.2, build review_150mhz_20261105 |
+| Routed timing | Setup +0.158 ns, hold +0.015 ns | [Independent 150 MHz reports, source hashes and verification limits](docs/reports/build_150mhz_20261105/README.md) |
 | RTL/golden | 16/16 exported logit pairs identical; 14/16 labels correct | Recorded regressions; slots 0/1 are known model misses |
-| Host/GUI | 30 host tests, Release GUI build and mock bridge smoke pass | [Selected evidence](docs/reports/current_build_20261104/README.md); operator reports physical integrated GUI passed |
-| CPU baseline | CPU median 152.8 us; FPGA 79.96 us; **1.911x** | [Exact integer NumPy baseline](integration/docs/INFERENCE_BENCHMARK.md), Ryzen 9 5900HS, Balanced; not an optimized INT8-runtime comparison |
+| Host/GUI | 34 host tests, Release GUI build and mock bridge smoke pass | [Review evidence](docs/reports/build_150mhz_20261105/README.md); operator reports good external-webcam results with norm none |
+| Historical CPU comparison (4 Nov) | CPU median 152.8 us; old FPGA 79.96 us; **1.911x** | [Exact integer NumPy baseline](integration/docs/INFERENCE_BENCHMARK.md), Ryzen 9 5900HS, Balanced; not an optimized INT8-runtime comparison |
 | Exported model accuracy | train 97.23%, valid 94.44%, test 98.15% (108 images) | Prior recomputation from committed export/crops; small single-subject evaluation with possible frame leakage |
 
 These are CNN compute times, not webcam/serial/display latency. Different
@@ -38,6 +38,8 @@ historical builds have different resource/timing results; use the
 [evidence index](docs/reports/README.md). Dataset accuracy does not establish
 performance on unseen people. Live target 10 Hz is not guaranteed throughput;
 Frame ID exhaustion and manual gap recovery remain documented limitations.
+Three standalone layer testbenches are stale/failing and automatic CI was removed
+upstream; see current status before claiming a full regression PASS.
 
 ## Run
 
@@ -79,12 +81,12 @@ artifacts; build caches and personal inputs are excluded. See
 
 ## Team
 
-Roles summarised from the daily progress reports and completed integration work (29 Oct – 4 Nov 2026).
+Roles summarised from the daily progress reports and completed integration work (29 Oct – 5 Nov 2026).
 
 | Member | Role |
 |---|---|
 | Michael Reynaldi Tamara ("Reyn") | ML model: dataset, training, int8/fixed-point export; webcam eye detection and preprocessing (MediaPipe/OpenCV) |
-| Handy Jonarta | CNN core architecture (parallel layers, 100 MHz), CNN core layers + layer testbenches (with Nabil), block diagrams |
+| Handy Jonarta | CNN core architecture (parallel layers, 100/150 MHz), CNN core layers + layer testbenches (with Nabil), block diagrams |
 | Nabil Karim Abdurrahman | CNN core layers + layer testbenches (with Handy), GitHub |
 | Karunia Muda Kurniawan ("Karan") | UART communication, image upload and validation; live webcam-to-FPGA pipeline and GUI integration; verification and benchmarking |
 | Bramantio Ananda ("Tio") | Top-level integration (input control, drowsy FSM, alert/display), FPGA implementation (XDC, Vivado, board test), top-level testbenches |

@@ -1,0 +1,2 @@
+PASS tb_uart_latency (MHz=150, zero, rounding boundaries and maximum cycle count)
+C:\Karan\Program_KCCI\Training_Technical\Project_Modul_3_FPGA\build\review_97f91ae\build\verify_20261105_125356_186675\source\integration\sim\tb_uart_latency.v:34: $finish called at 980070000 (1ps)

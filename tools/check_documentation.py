@@ -29,16 +29,19 @@ def main():
                 destination = (path.parent / unquote(target)).resolve()
                 if not destination.exists():
                     failures.append(f'{name}:{line_no}: missing target {target}')
-    archive = ROOT/'docs/reports/current_build_20261104'
-    manifest = json.loads((archive/'archive_manifest.json').read_text(encoding='utf-8'))
-    for name, expected in manifest.items():
-        path = archive/name
-        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-            failures.append(f'Archived evidence changed: {path.relative_to(ROOT)}')
+    hashes_checked = 0
+    for folder in ('current_build_20261104', 'build_150mhz_20261105'):
+        archive = ROOT/'docs/reports'/folder
+        manifest = json.loads((archive/'archive_manifest.json').read_text(encoding='utf-8'))
+        for name, expected in manifest.items():
+            path = archive/name
+            hashes_checked += 1
+            if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+                failures.append(f'Archived evidence changed: {path.relative_to(ROOT)}')
     if failures:
         print('\n'.join(failures),file=sys.stderr)
         return 1
-    print(f'PASS: file targets in {checked} Markdown documents; {len(manifest)} archived evidence hashes')
+    print(f'PASS: file targets in {checked} Markdown documents; {hashes_checked} archived evidence hashes')
     print('Scope: file targets only; heading anchors, external URLs and prose accuracy require review.')
     return 0
 

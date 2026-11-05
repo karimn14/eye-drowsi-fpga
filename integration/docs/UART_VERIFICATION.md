@@ -1,5 +1,9 @@
 # UART Verification Record
 
+> Historical verification of the revisions named below, not a new 150 MHz
+> acceptance run. See [current status](../../docs/STATUS_AND_ISSUES.md) and
+> [5 Nov review](../../docs/reports/build_150mhz_20261105/README.md).
+
 ## 2026-11-03: External image upload
 
 The new image-input build preserves SLOT/RUN and adds CRC-checked binary

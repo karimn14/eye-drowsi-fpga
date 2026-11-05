@@ -59,7 +59,7 @@ The current export uses S1=10 and S2=6. UART transmits raw signed integer logits
 
 Class uses the raw CNN prediction, where class 0/logit0 means CLOSED and class 1/logit1 means OPEN. Equal logits select CLOSED. Warning uses the existing temporal state after that frame, including the optional low-confidence hold; therefore class and warning describe different things. Logits are scores, not probabilities.
 
-`cycles` measures CNN execution using the existing system counter. `us` is floor(cycles / CLK_MHZ), not serial round-trip time or the BCD display's saturated value. At the current 100 MHz configuration, 7,996 cycles yields 79 us in the integer output. Conversion takes 20 small arithmetic steps; decimal formatting uses a separate shift/add-3 converter. Neither changes the CNN arithmetic or execution-cycle count.
+`cycles` measures CNN execution using the existing system counter. `us` is floor(cycles / CLK_MHZ), not serial round-trip time or the BCD display's saturated value. At the current 150 MHz configuration, 712 cycles yields 4 us in the integer output (exact duration 4.7467 us). Conversion takes 20 small arithmetic steps; decimal formatting uses a separate shift/add-3 converter. Neither changes the CNN arithmetic or execution-cycle count.
 
 Frame data is captured together at `frame_done`. One reserved result is retained until its complete line is transmitted. Replies and RESULT lines never interleave. A RUN acknowledgement precedes its result; otherwise a waiting RESULT takes priority after the current line. The next frame is held while output capacity is occupied. Sequence ticks coalesce while waiting, so sustained throughput is bounded by UART bandwidth. Manual presses during a blocked interval are not queued.
 
@@ -95,7 +95,7 @@ Simulation requires Icarus/vvp on PATH and a Python interpreter with NumPy. The 
 vivado -mode batch -source integration/scripts/build_uart.tcl
 ```
 
-`--baseline` tests committed HEAD, ignoring working changes. The full working-tree runner executes 22 test configurations, including three layer tests, rejection of missing vectors, serial-pin tests with both real and stub CNN and 50/100 MHz timing conversion. `--only tb_uart_command tb_uart_system_real` selects specific cases. NumPy 2.3.5 was used for recorded vector generation; no training framework is needed for these tests.
+`--baseline` tests committed HEAD, ignoring working changes. The full working-tree runner selects its current configurations from the script, including three standalone layer harnesses, missing-vector rejection and serial-pin tests. The three layer harnesses are currently stale/failing against the new banked interfaces; see STATUS_AND_ISSUES.md in docs. Do not claim a full regression PASS. Independent review also checked timing conversion at 150 MHz. `--only tb_uart_command tb_uart_system_real` selects specific cases. NumPy 2.3.5 was used for recorded vector generation; no training framework is needed for these tests.
 
 Use the virtual environment created in the PC setup section. The build command assumes Vivado is on PATH; otherwise invoke the installed Vivado batch launcher by its full path. No serial client or board connection is needed for simulation or implementation.
 
