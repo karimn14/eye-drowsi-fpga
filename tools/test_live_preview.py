@@ -49,9 +49,8 @@ class PreviewTests(unittest.TestCase):
              patch('live_webcam.Transport',return_value=worker):
             self.assertEqual(main(['--port','FAKE','--log-dir',directory]),0)
             pixels,_,_,label=worker.mailbox.item
-            # Default --norm train: the reyn crop shifted to the training mean/std is what gets uploaded.
-            from check_crops import match_train
-            self.assertEqual(pixels,match_train(expected).tobytes())
+            # Default --norm none preserves the Reyn crop bytes, including contrast remapping.
+            self.assertEqual(pixels,expected.tobytes())
             self.assertEqual(len(pixels),576)
             self.assertIsNone(label)
             events=[json.loads(line) for line in next(Path(directory).rglob('events.jsonl')).read_text().splitlines()]
@@ -59,6 +58,7 @@ class PreviewTests(unittest.TestCase):
             self.assertEqual(events[0]['pad'],.15)
             self.assertEqual(events[0]['crop_offset_y'],.10)
             self.assertEqual(events[0]['contrast_levels'],[60,235])
+            self.assertEqual(events[0]['norm'],'none')
         worker.close.assert_called_once()
 
     def test_gui_stop_emits_json_and_closes_without_capturing(self):

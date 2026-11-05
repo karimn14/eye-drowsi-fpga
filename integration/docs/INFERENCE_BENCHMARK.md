@@ -16,10 +16,12 @@ UART and display. It does not benchmark the slow golden implementation:
 the golden is used outside timing to check exact logits for all 16 exported
 inputs plus 64 deterministic random inputs.
 
-The FPGA comparison is 7,996 cycles at 100 MHz = **79.96 us**, from previously
-validated board telemetry. This script does not make a fresh FPGA measurement
-or time the whole webcam system. The displayed integer `us=79` truncates the
-fraction; use cycle count divided by clock frequency for comparison.
+The current script default is 712 cycles at 150 MHz = **4.7467 us**,
+independently checked in the 5 Nov build. The archived 4 Nov run below used
+7,996 cycles at 100 MHz = **79.96 us**; its 1.911x ratio is historical, not
+the speedup of the new core. A new benchmark invocation records its selected
+cycle/clock parameters; do not silently relabel the old report. This script does not make a fresh FPGA measurement
+or time the whole webcam system. The integer UART us field truncates the fraction (current us=4); use cycle count divided by clock frequency for comparison.
 
 Default procedure: 300 warmup calls, then five repetitions of 5,000 separate
 batch-one measurements with perf_counter_ns. Outputs under ignored

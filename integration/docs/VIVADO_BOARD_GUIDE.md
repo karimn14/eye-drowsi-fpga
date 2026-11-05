@@ -1,13 +1,16 @@
 # Vivado + Basys3 step-by-step — drowsiness CNN demo
 
-Design = the integration RTL (`integration/rtl`: `drowsiness_top`, `input_control`, `drowsy_fsm`, `alert_control`)
-+ the CNN core of this repo (`rtl/cnn_top.v`, `rom_weights.v`, ROM files in `ml/export/`).
-Constraints: `integration/constraints/basys3.xdc`. Vivado 2025.2.1, part `xc7a35tcpg236-1`.
+Current default (reviewed 5 Nov, 97f91ae): integration/rtl/drowsiness_top.v
+with rtl/cnn150/, UART/upload and buzzer. Part xc7a35tcpg236-1; Vivado 2025.2.
+The board oscillator remains 100 MHz; MMCM *9 /6 supplies 150 MHz internally.
+System inference is 712 cycles /150 MHz = 4.7467 us; display/UART show 4.
+Build script defaults to 1,000,000 baud. A bare RTL instantiation still has
+UART_BAUD=115200 unless overridden; use the documented build script.
 
-**Clock:** the board's 100 MHz clock (W5) is the system clock directly (`CLK_MHZ = 100` in `drowsiness_top.v`, no
-MMCM): the team's pipelined `cnn_top` meets 100 MHz (WNS +2.385 ns, 2 Nov build). One inference = 7,996 cycles =
-80 µs (SW15 shows `0079`). `CLK_MHZ = 50` would put an MMCM in front (only needed for the old one-MAC core);
-debounce, 100 ms frames and the display refresh scale with `CLK_MHZ`, so the board behaves the same.
+[Current setup](../../docs/GETTING_STARTED.md) and
+[raw independent timing/resource review](../../docs/reports/build_150mhz_20261105/README.md)
+are the primary instructions. Three old standalone layer harnesses are stale;
+see current status before quoting a full regression PASS.
 
 Paths below are relative to the repository root (`<repo>`). Use forward slashes in the Vivado Tcl console.
 
@@ -104,11 +107,11 @@ Slot labels / golden logits: `ml/export/expected.txt` (label 1 = open; display s
 
 ## Troubleshooting
 
-- **WNS < 0 (timing fails)**: the 2 Nov build meets 100 MHz with WNS +2.385 ns. If a new `cnn_top` fails, open the
-  worst path (Timing → double-click the top path) and send it to the CNN team (a combinational read of the
-  img/a1/a2 buffers in `cnn_top` brings back the old ~16.6 ns path: buffer read → multiply → accumulate).
-  Emergency fallback is a one-line change: `CLK_MHZ = 50` in `drowsiness_top.v` adds an MMCM (VCO 1000 MHz /
-  CLK_MHZ must be an integer ≥ 2, e.g. 50, 40, 25); the latency display then shows `0745`.
+- **WNS < 0 (timing fails)**: do not use a timing-failing bitstream. Inspect
+  the new routed report rather than quoting a historical build. The reviewed
+  150 MHz build has setup +0.158 ns / hold +0.015 ns. Clock/core/baud generics
+  must match; fallback 100 MHz uses the separate rtl/cnn_top implementation
+  (702 cycles), not a blind frequency change to a historical core.
 - **Board not detected**: other USB cable/port (some cables are charge-only), power switch on, JP1 on JTAG.
   Drivers: run `E:\AMD-Tools\2025.2.1\Vivado\data\xicom\cable_drivers\nt64\digilent\install_digilent.exe`
   (as administrator), re-plug.

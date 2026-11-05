@@ -1,0 +1,2 @@
+PASS independent150: 83 external frames, reset-mid-execution recovery, exact logits; direct-core cycles 711..711
+C:\Karan\Program_KCCI\Training_Technical\Project_Modul_3_FPGA\build\review_97f91ae\build\independent_150\tb.v:28: $finish called at 398213508 (1ps)

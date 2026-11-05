@@ -1,5 +1,9 @@
 # Image-input verification — 2026-11-03
 
+> Historical verification of the revisions named below, not a new 150 MHz
+> acceptance run. See [current status](../../docs/STATUS_AND_ISSUES.md) and
+> [5 Nov review](../../docs/reports/build_150mhz_20261105/README.md).
+
 The real CNN accepts new 24x24 uint8 eye crops through UART, while retaining
 ROM and board modes. Protocol and commands: [IMAGE_UPLOAD.md](IMAGE_UPLOAD.md).
 

@@ -1,0 +1,133 @@
+{
+  "revision": "97f91ae",
+  "clock_mhz": 150,
+  "cycles_system": 712,
+  "inference_us": 4.746666666666667,
+  "setup_ns": 0.158,
+  "hold_ns": 0.015,
+  "lut": 9249,
+  "ff": 8390,
+  "bram_tiles": 18.5,
+  "dsp": 80,
+  "bitstream_sha256": "e327981c67786954b8c9674487047f4af6e009505c32d620f8bb7980cb7d6e7c",
+  "original_partial_tests": [
+    {
+      "name": "tb_cnn",
+      "status": "PASS",
+      "summary": "16/16 golden logit pairs; 14/16 correct labels"
+    },
+    {
+      "name": "tb_relu_requant",
+      "status": "PASS",
+      "summary": "relu_requant S=10 : 24119 checks, 0 errors; relu_requant S=6  : 24119 checks, 0 errors; *** TEST PASSED : tb_relu_requant ***"
+    },
+    {
+      "name": "tb_relu_missing_vectors",
+      "status": "PASS",
+      "summary": "Missing vectors terminate simulation with nonzero exit"
+    },
+    {
+      "name": "tb_conv_pe",
+      "status": "PASS",
+      "summary": "conv_pe NTAPS=9  : 4000 outputs checked, 0 errors; conv_pe NTAPS=36 : 4000 outputs checked, 0 errors; *** TEST PASSED : tb_conv_pe ***"
+    },
+    {
+      "name": "tb_conv_relu_golden",
+      "status": "PASS",
+      "summary": "Layer 1 (conv_pe 9 taps  + ReLU S1=10): 7744 pooled outputs, 0 errors | windows acc<0: 19101, saturated: 0, pooled==0: 4840; Layer 2 (conv_pe 36 taps + ReLU S2=6 ): 2048 pooled outputs, 0 errors | windows acc<0: 3892, saturated: 0, pooled==0: 865; *** TEST PASSED : tb_conv_relu_golden ***"
+    },
+    {
+      "name": "tb_input_control",
+      "status": "PASS",
+      "summary": "PASS tb_input_control (3 pulses)"
+    },
+    {
+      "name": "tb_alert_control",
+      "status": "PASS",
+      "summary": "PASS tb_alert_control"
+    },
+    {
+      "name": "tb_drowsy_fsm",
+      "status": "PASS",
+      "summary": "part 1: 500 steps checked vs drowsy_ref, 0 errors; PASS tb_drowsy_fsm (500 trace steps, 128 sequence frames)"
+    },
+    {
+      "name": "tb_roms",
+      "status": "PASS",
+      "summary": "PASS tb_roms"
+    },
+    {
+      "name": "tb_cnn_control",
+      "status": "PASS",
+      "summary": "PASS tb_cnn_control (16 slots: a1, a2, logits = Python golden; latency 36124 cycles)"
+    },
+    {
+      "name": "tb_top",
+      "status": "PASS",
+      "summary": "manual: 16 slots checked, 0 errors; sequence: 128 frames checked (26 in MICROSLEEP), 0 errors total; PASS tb_top"
+    }
+  ],
+  "focused_tests": [
+    {
+      "name": "tb_conv1_layer",
+      "status": "FAIL",
+      "summary": "tb_conv1_layer_compile: exit 1\ning: Instantiating module conv1_layer with dangling input port 13 (w_dataL1_1) floating.\nC:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\sim\\tb_conv1_layer.v:34: warning: Instantiating module conv1_layer with dangling input port 14 (w_dataL1_2) floating.\nC:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\sim\\tb_conv1_layer.v:34: warning: Instantiating module conv1_layer with dangling input port 15 (w_dataL1_3) floating.\nC:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\sim\\tb_conv1_layer.v:34: warning: Instantiating module conv1_layer with dangling input port 16 (w_dataL2_0) floating.\nC:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\sim\\tb_conv1_layer.v:34: warning: Instantiating module conv1_layer with dangling input port 17 (w_dataL2_1) floating.\nC:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\sim\\tb_conv1_layer.v:34: warning: Instantiating module conv1_layer with dangling input port 18 (w_dataL2_2) floating.\nC:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\sim\\tb_conv1_layer.v:34: warning: Instantiating module conv1_layer with dangling input port 19 (w_dataL2_3) floating.\nC:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\sim\\tb_conv1_layer.v:34: warning: Port 23 (a1_waddr) of conv1_layer expects 8 bits, got 9.\nC:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\sim\\tb_conv1_layer.v:34:        : Padding 1 high bits of the expression.\n1 error(s) during elaboration.\n"
+    },
+    {
+      "name": "tb_conv2_layer",
+      "status": "FAIL",
+      "summary": "tb_conv2_layer: exit 1\nVCD info: dumpfile tb_conv2_layer.vcd opened for output.\nL2 mismatch image=0 index=0 got=x exp=76\nL2 mismatch image=0 index=1 got=x exp=53\nL2 mismatch image=0 index=2 got=x exp=45\nL2 mismatch image=0 index=3 got=x exp=39\nL2 mismatch image=0 index=4 got=x exp=50\nL2 mismatch image=0 index=5 got=x exp=19\nL2 mismatch image=0 index=6 got=x exp=18\nL2 mismatch image=0 index=7 got=x exp=19\nL2 mismatch image=0 index=8 got=x exp=34\nL2 image=0 writes=128 errors=128\nFATAL: C:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\sim\\tb_conv2_layer.v:92: *** TEST FAILED: tb_conv2_layer ***\n       Time: 3176000  Scope: tb_conv2_layer\n"
+    },
+    {
+      "name": "tb_fc_layer",
+      "status": "FAIL",
+      "summary": "tb_fc_layer: exit 1\nVCD info: dumpfile tb_fc_layer.vcd opened for output.\nFC logit0 image=0 got=x exp=492\nFC logit1 image=0 got=x exp=727\nFC image=0 logit0=x logit1=x errors=2\nFATAL: C:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\sim\\tb_fc_layer.v:90: *** TEST FAILED: tb_fc_layer ***\n       Time: 456000  Scope: tb_fc_layer\n"
+    },
+    {
+      "name": "tb_uart_phy",
+      "status": "PASS",
+      "summary": "PASS tb_uart_phy (loopback, baud tolerance, false start, framing, reset)"
+    },
+    {
+      "name": "tb_uart_command",
+      "status": "PASS",
+      "summary": "PASS tb_uart_command (all slots, LF/CRLF, range, overflow, framing, reset)"
+    },
+    {
+      "name": "tb_uart_format",
+      "status": "PASS",
+      "summary": "PASS tb_uart_format (all messages, signed extremes, decimal, reset)"
+    },
+    {
+      "name": "tb_uart_latency_100",
+      "status": "PASS",
+      "summary": "PASS tb_uart_latency (MHz=100, zero, rounding boundaries and maximum cycle count); C:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\integration\\sim\\tb_uart_latency.v:34: $finish called at 981680000 (1ps)"
+    },
+    {
+      "name": "tb_uart_latency_50",
+      "status": "PASS",
+      "summary": "PASS tb_uart_latency (MHz=50, zero, rounding boundaries and maximum cycle count); C:\\Karan\\Program_KCCI\\Training_Technical\\Project_Modul_3_FPGA\\build\\review_97f91ae\\build\\verify_20261105_125356_186675\\source\\integration\\sim\\tb_uart_latency.v:34: $finish called at 981680000 (1ps)"
+    },
+    {
+      "name": "tb_uart_system_stub",
+      "status": "PASS",
+      "summary": "PASS tb_uart_system (16 PC slots, BOARD/SEQ telemetry, golden/temporal oracle, low-confidence hold, busy, mode, errors, overrun, reset; results=87)"
+    }
+  ],
+  "core_stress": "83 external frames, exact golden, reset-mid-execution, PASS; direct core 711 cycles vs integrated counter 712",
+  "integrated_scaled": "16 slots + 64 temporal + 16 scan, PASS; only STEP idle interval shortened 80000->4000",
+  "uart_converter_150": "PASS zero, rounding boundaries and max count",
+  "host_tests": 34,
+  "gui": "Release build and isolated mock smoke PASS",
+  "physical_programming": "Not performed during this review",
+  "full_regression": "Original idle-heavy full run stopped intentionally; not a full-suite PASS",
+  "findings": [
+    "Three stale standalone layer testbenches fail against changed banking/ports: tb_conv1_layer compile port a1_wdata removed; tb_conv2_layer and tb_fc_layer unknown logits due outdated harness inputs.",
+    "Workflow .github/workflows/checks.yml removed upstream; no CI regression coverage now.",
+    "Current status/README retain some old 100 MHz build tables and stale reviewed-at dates.",
+    "UART default host 1Mbaud; synth build generic sets 1Mbaud, bare drowsiness_top parameter remains 115200.",
+    "Default live norm=train changes preprocessing; --norm none restores previous pixel behavior.",
+    "DRC: RAMB18 async control warnings, report limit reached; no DRC errors.",
+    "Static checks: no_clock=0 and unconstrained internal endpoints=0; external board IO delay warnings remain."
+  ]
+}

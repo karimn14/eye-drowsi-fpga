@@ -55,9 +55,13 @@ upload loop is replaced by the tested latest-frame mailbox and persistent
 UART connection. It uses camera index from the GUI, left eye, target 10 Hz,
 Reyn eye+brow crop, padding 0.15, grayscale 24x24, contrast 60..235, and
 vertical offset +0.10. No new FPGA bitstream is required.
+Additional mean/std normalization defaults to none; the GUI inherits this
+from live_webcam.py. Crop/grayscale/resize and Reyn contrast remapping remain
+active. Restart a running live client to use the changed default.
 
 Prepare `.venv-camera` with Python 3.12 and `tools/requirements-live.txt`
-(see `integration/docs/LIVE_WEBCAM.md`). The GUI prefers that interpreter
+(see `integration/docs/LIVE_WEBCAM.md`). UART defaults to 1,000,000 baud and must match the programmed 150 MHz
+build. The GUI prefers that interpreter
 for recorder/CLI too. Diagnostics is enabled for GUI live sessions: exact
 eye crops and golden comparisons are saved locally in `build/live_sessions`.
 Only eye crops are saved; full webcam frames are not recorded.

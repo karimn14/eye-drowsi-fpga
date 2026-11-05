@@ -21,14 +21,14 @@ packages in a separate environment: [ml/README.md](../ml/README.md).
 ## FPGA build and programming
 
 Requires Vivado with Artix-7 support (xc7a35tcpg236-1). The archived current
-build used Vivado 2025.2; see [its evidence](reports/current_build_20261104/README.md).
+150 MHz / 1 Mbaud build used Vivado 2025.2; see [its evidence](reports/build_150mhz_20261105/README.md).
 
 ```powershell
 vivado -mode batch -source integration/scripts/build_uart.tcl
 ```
 
 This creates unique build/uart_hw_<timestamp>/ output, checks setup/hold,
-and writes drowsiness_top.bit. Program that bitstream through Hardware
+and writes drowsiness_top.bit. Default build: CLK_MHZ=150, UART_BAUD=1000000. Program that bitstream through Hardware
 Manager. The root basys3_wrapper bitstream does not provide this integrated
 UART/live/buzzer flow. Rebuilding does not guarantee identical placement or
 bitstream hashes. [Board guide](../integration/docs/VIVADO_BOARD_GUIDE.md).
@@ -59,14 +59,14 @@ dotnet build windows-app/EyeDrowsinessControl.csproj -c Release
    clear a board alarm.
 
 Defaults: left eye, target 10 Hz, Reyn eye+brow crop, pad 0.15, contrast 60..235,
-Y offset +0.10. IDs advance per completed result and stop at exhaustion.
+Y offset +0.10 and extra normalization none. UART is 1,000,000 baud. IDs advance per completed result and stop at exhaustion.
 [Current limitations](STATUS_AND_ISSUES.md).
 
 ## Same pipeline without GUI
 
 ```powershell
 .\.venv-camera\Scripts\python.exe tools\uart_cli.py ports
-.\.venv-camera\Scripts\python.exe tools\live_webcam.py --camera 0 --port COM6 --eye left --fps 10 --frame-id 12000 --roi-style reyn --crop-offset-y 0.10 --diagnostics
+.\.venv-camera\Scripts\python.exe tools\live_webcam.py --camera 0 --port COM6 --eye left --fps 10 --frame-id 12000 --roi-style reyn --crop-offset-y 0.10 --norm none --diagnostics
 ```
 
 Press SPACE to start the standalone client. For a manual upload use
@@ -82,6 +82,9 @@ bash run_sim.sh
 bash integration/sim/run.sh
 ```
 
-The integration shell runner selects 14 testbenches. Host/core/integration/
+The integration shell runner selects 14 testbenches. Three standalone layer
+harnesses in the separate portable runner are stale/failing; see current
+status and do not report a full regression PASS. Automatic CI was removed
+upstream, so execute applicable checks manually. Host/core/integration/
 physical checks have different scopes; software tests do not establish
 physical webcam accuracy or board timing. [CPU benchmark](../integration/docs/INFERENCE_BENCHMARK.md).

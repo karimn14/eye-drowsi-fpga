@@ -1,6 +1,7 @@
 # Evidence index
 
-- [Current integrated FPGA build and GUI/host evidence](current_build_20261104/README.md).
+- [Current 150 MHz independent build/review](build_150mhz_20261105/README.md), including verification failures and scope.
+- [Historical 4 Nov 100 MHz build and GUI/host evidence](current_build_20261104/README.md).
 - [3 Nov UART implementation and physical fault-test archive](uart_image_upload_20261103/README.md).
 - [Current status](../STATUS_AND_ISSUES.md) defines which results apply now.
 

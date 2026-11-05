@@ -17,9 +17,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--port', help='FPGA COM port; required unless --preview-only or --dry-run')
     parser.add_argument('--baud',type=int,default=None,help='UART baud; must match the bitstream (default uart_cli.DEFAULT_BAUD = 1000000)')
-    parser.add_argument('--norm',choices=['train','none'],default='train',
-        help='train (default): shift/scale each 24x24 crop to the training-set mean 79.7 / std 15.7 before upload '
-             '(webcam crops average ~124 and were all classified CLOSED); none: send the crop unchanged')
+    parser.add_argument('--norm',choices=['train','none'],default='none',
+        help='none (default): send the preprocessed crop without extra normalization; '
+             'train: shift/scale each 24x24 crop to training mean 79.7 / std 15.7 before upload')
     parser.add_argument('--dry-run',action='store_true',help='No board: tools/fake_fpga.py (integer CNN + DrowsyRef, modelled wire/USB time)')
     parser.add_argument('--usb-ms',type=float,default=1.0,help='--dry-run only: modelled FTDI latency timer per reply (Windows default 16)')
     parser.add_argument('--camera',type=int,default=0)

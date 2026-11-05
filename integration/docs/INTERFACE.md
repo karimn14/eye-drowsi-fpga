@@ -1,23 +1,25 @@
 # Active interface — integrated eye-state system
 
-Reviewed 2026-11-04 against main e3ac7ea. The
+Reviewed 2026-11-05 against main 97f91ae plus the norm-none host default. The
 [original v1 proposal and annotations](archive/INTERFACE_V1_20261030.md)
 remain historical; cnn_control/cnn_core proposals do not describe the active
 filter-parallel datapath.
 
 ## Top and clock/reset
 
-Use integration/rtl/drowsiness_top.v, part xc7a35tcpg236-1. Default CLK_MHZ=100
-uses the board oscillator directly; CLK_MHZ=50 is a legacy MMCM option.
+Use integration/rtl/drowsiness_top.v, part xc7a35tcpg236-1. Default CLK_MHZ=150 uses MMCM 100 MHz *9 /6; CLK_MHZ=100 uses the
+oscillator directly, and CLK_MHZ=50 is a legacy MMCM option.
 btnU passes through input_control; active CNN rst is asynchronous active-high.
 Normal source build is scripts/build_uart.tcl from the repository root path
-`integration/scripts/build_uart.tcl`. Clock: `CLK_MHZ=150` (default, MMCM 100 MHz x 9 / 6, core `rtl/cnn150/`; WNS +0.158 ns) or 100 (`build_uart.tcl <out> <baud> 100`). UART is 1,000,000 baud 8N1 since 5 Nov (`UART_BAUD`; `build_uart.tcl <out> 115200` for a legacy build); SW9 selects ownership.
+`integration/scripts/build_uart.tcl`. Clock: `CLK_MHZ=150` (default, MMCM 100 MHz x 9 / 6, core `rtl/cnn150/`; WNS +0.158 ns) or 100 (`build_uart.tcl <out> <baud> 100`). The build script explicitly sets UART_BAUD=1000000 (1 Mbaud 8N1); the bare
+RTL parameter remains 115200. `build_uart.tcl <out> 115200` builds a legacy
+baudrate. SW9 selects ownership.
 
 ## CNN and arithmetic
 
 | Interface | Contract |
 |---|---|
-| Module | rtl/cnn_top.v, EXTERNAL_INPUT parameter enables upload input |
+| Module | rtl/cnn150/cnn_top_150.v by default; rtl/cnn_top.v for CLK_MHZ=100; EXTERNAL_INPUT enables uploads |
 | clk/rst/start | clk, asynchronous active-high rst; start is one cycle, issued only when ready |
 | img_base_addr | 14-bit ROM slot base, slot * 1024 |
 | external_image | selects external input for this inference when enabled |
